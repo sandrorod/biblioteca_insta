@@ -17,16 +17,17 @@ import { SearchBar } from './SearchBar';
 import { VideoCard } from './VideoCard';
 import { VideoModal } from './VideoModal';
 
-const DENSITY_KEY = 'biblioteca:density';
+// v2: o padrão passou a ser 5 colunas (escolhas antigas de 3 colunas não se mantêm)
+const DENSITY_KEY = 'biblioteca:density:v2';
 const DENSITIES = { 3: 'lg:grid-cols-3', 4: 'lg:grid-cols-4', 5: 'lg:grid-cols-5' } as const;
 type Density = keyof typeof DENSITIES;
 
 function readDensity(): Density {
   try {
     const v = Number(localStorage.getItem(DENSITY_KEY));
-    return v === 4 || v === 5 ? v : 3;
+    return v === 3 || v === 4 ? v : 5;
   } catch {
-    return 3;
+    return 5;
   }
 }
 
