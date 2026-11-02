@@ -46,13 +46,13 @@ vi.mock('@/services/taxonomy', () => ({
 }));
 vi.mock('@/contexts/AuthContext', () => ({ useAuth: () => ({ user: { id: 'u1' } }) }));
 
-// IntersectionObserver controlável: o teste "rola" até o fim chamando trigger()
+// IntersectionObserver controlável: o teste "rola" até o fim acionando o observador do sentinela da galeria
 let observerCallback: IntersectionObserverCallback | null = null;
 class FakeObserver {
-  constructor(cb: IntersectionObserverCallback) {
-    observerCallback = cb;
+  constructor(private cb: IntersectionObserverCallback) {}
+  observe(el: Element) {
+    if (el.getAttribute('data-testid') === 'gallery-sentinel') observerCallback = this.cb;
   }
-  observe() {}
   disconnect() {}
   unobserve() {}
   takeRecords() {

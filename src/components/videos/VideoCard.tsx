@@ -1,8 +1,9 @@
 import { Clapperboard, Heart, MessageSquare } from 'lucide-react';
-import { memo, useState } from 'react';
+import { memo, useCallback, useState } from 'react';
 import type { Video } from '@/types';
 import { cn } from '@/utils/cn';
 import { displayTitle } from '@/utils/format';
+import { EmbedThumb } from './EmbedThumb';
 
 export const PLACEHOLDER = '/placeholder.svg';
 
@@ -15,18 +16,23 @@ interface Props {
 /** Miniatura 4:5 no estilo do Instagram: ícone de vídeo, favorito e detalhes ao passar o mouse. */
 export const VideoCard = memo(function VideoCard({ video, onOpen, onToggleFavorite }: Props) {
   const [broken, setBroken] = useState(false);
-  const src = !video.thumbnail_url || broken ? PLACEHOLDER : video.thumbnail_url;
+  const [embedFailed, setEmbedFailed] = useState(false);
+  const onEmbedUnavailable = useCallback(() => setEmbedFailed(true), []);
+  const hasImage = !!video.thumbnail_url && !broken;
+  const src = hasImage ? video.thumbnail_url! : PLACEHOLDER;
 
   return (
     <div className="group relative aspect-[4/5] overflow-hidden bg-zinc-100 sm:rounded-sm">
       <button type="button" onClick={() => onOpen(video.id)} className="absolute inset-0 h-full w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring" aria-label={`Abrir ${displayTitle(video.title)}`}>
+        {/* Sem capa salva: usa o player oficial do Instagram como capa */}
+        {!hasImage && !embedFailed && <EmbedThumb url={video.instagram_url} onUnavailable={onEmbedUnavailable} />}
         <img
           src={src}
           alt=""
           loading="lazy"
           decoding="async"
           onError={() => setBroken(true)}
-          className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+          className={cn('h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]', !hasImage && !embedFailed && 'invisible')}
         />
         {/* Gradiente + informações no hover (sempre visíveis no toque, de forma discreta) */}
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-visible:opacity-100" />

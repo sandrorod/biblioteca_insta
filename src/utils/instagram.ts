@@ -54,6 +54,12 @@ export function instagramEmbedUrl(url: string): string | null {
   return post ? `https://www.instagram.com/${post.kind}/${post.shortcode}/embed/captioned/` : null;
 }
 
+/** Player sem legenda (usado como capa de reserva na grade). */
+export function instagramPostEmbedUrl(url: string): string | null {
+  const post = parseInstagramPost(url);
+  return post ? `https://www.instagram.com/${post.kind}/${post.shortcode}/embed/` : null;
+}
+
 /** Perfil a partir de um link de perfil (instagram.com/usuario). */
 export function profileFromUrl(url: string): string | null {
   const m = url.trim().match(PROFILE_RE);

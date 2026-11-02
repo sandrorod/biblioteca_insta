@@ -13,6 +13,14 @@ export async function saveCategory(data: { id?: string; name: string; descriptio
   return unwrap(await supabase.from('biblioteca_categories').insert(fields));
 }
 
+/** Cria e devolve a categoria (usado no cadastro do vídeo para já selecioná-la). */
+export async function createCategory(name: string, color: string, position: number): Promise<Category> {
+  const row = unwrap(
+    await supabase.from('biblioteca_categories').insert({ name: name.trim(), color, position }).select('*').single(),
+  ) as Omit<Category, 'video_count'>;
+  return { ...row, video_count: 0 };
+}
+
 export async function deleteCategory(id: string, transferTo: string | null) {
   return unwrap(await supabase.rpc('biblioteca_delete_category', { p_id: id, p_transfer_to: transferTo }));
 }

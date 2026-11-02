@@ -7,12 +7,13 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input, Textarea } from '@/components/ui/input';
 import { Field } from '@/components/ui/label';
 import { useDebounce } from '@/hooks/useDebounce';
-import { useCategories, useRefreshLibrary } from '@/hooks/useTaxonomy';
+import { useRefreshLibrary } from '@/hooks/useTaxonomy';
 import { friendlyError } from '@/services/errors';
 import { createVideo, findDuplicate, updateVideo } from '@/services/videos';
 import type { Video, VideoInput } from '@/types';
 import { cn } from '@/utils/cn';
 import { isInstagramUrl, profileFromUrl } from '@/utils/instagram';
+import { CategorySelect } from './CategorySelect';
 import { TagPicker } from './TagPicker';
 import { ThumbnailInput } from './ThumbnailInput';
 
@@ -93,6 +94,8 @@ function QuickAdd({ onDone, onFull }: { onDone: () => void; onFull: () => void }
   const refresh = useRefreshLibrary();
   const navigate = useNavigate();
   const [url, setUrl] = useState('');
+  const [categoryId, setCategoryId] = useState<string | null>(null);
+  const [tagIds, setTagIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
   const dup = useDuplicate(url);
   const valid = isInstagramUrl(url);
@@ -108,15 +111,16 @@ function QuickAdd({ onDone, onFull }: { onDone: () => void; onFull: () => void }
         description: null,
         thumbnail_url: null,
         profile_name: profileFromUrl(url),
-        category_id: null,
+        category_id: categoryId,
         original_publish_date: null,
         notes: null,
-      });
+      }, tagIds);
       refresh();
       toast.success('Vídeo salvo. Complete os dados quando quiser.', {
         action: { label: 'Abrir', onClick: () => navigate(`/videos?video=${id}`) },
       });
       setUrl('');
+      setTagIds([]);
       onDone();
     } catch (err) {
       toast.error(friendlyError(err));
@@ -131,13 +135,19 @@ function QuickAdd({ onDone, onFull }: { onDone: () => void; onFull: () => void }
         <DialogTitle className="flex items-center gap-2">
           <Zap className="h-4 w-4 text-pink-500" /> Cadastro rápido
         </DialogTitle>
-        <DialogDescription>Cole o link do Instagram. Título, categoria e etiquetas podem ser completados depois.</DialogDescription>
+        <DialogDescription>Cole o link do Instagram. Categoria e etiquetas são opcionais; o resto pode ser completado depois.</DialogDescription>
       </DialogHeader>
       <div className="relative">
         <Link2 className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
         <Input value={url} onChange={(e) => setUrl(e.target.value)} placeholder="https://www.instagram.com/reel/…" className="h-10 pl-9" autoFocus />
       </div>
       {url && !valid && <p className="text-xs text-red-600">Informe um link do Instagram (instagram.com/…).</p>}
+      <Field label="Categoria" htmlFor="q-category">
+        <CategorySelect id="q-category" value={categoryId} onChange={setCategoryId} />
+      </Field>
+      <Field label="Etiquetas">
+        <TagPicker value={tagIds} onChange={setTagIds} />
+      </Field>
       {dup && (
         <DuplicateWarning
           dup={dup}
@@ -173,8 +183,7 @@ const emptyInput: VideoInput = {
 function VideoForm({ video, onDone }: { video?: Video; onDone: () => void }) {
   const refresh = useRefreshLibrary();
   const navigate = useNavigate();
-  const { data: categories = [] } = useCategories();
-  const [form, setForm] = useState<VideoInput>(() =>
+    const [form, setForm] = useState<VideoInput>(() =>
     video
       ? {
           title: video.title,
@@ -248,19 +257,7 @@ function VideoForm({ video, onDone }: { video?: Video; onDone: () => void }) {
           <Input id="v-date" type="date" value={form.original_publish_date ?? ''} onChange={(e) => set('original_publish_date', e.target.value || null)} />
         </Field>
         <Field label="Categoria principal" htmlFor="v-category" className="sm:col-span-2">
-          <select
-            id="v-category"
-            value={form.category_id ?? ''}
-            onChange={(e) => set('category_id', e.target.value || null)}
-            className="h-9 w-full rounded-md border border-input bg-white px-2 text-sm shadow-sm focus-visible:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/20"
-          >
-            <option value="">Sem categoria</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
+          <CategorySelect id="v-category" value={form.category_id} onChange={(id) => set('category_id', id)} />
         </Field>
       </div>
 

@@ -135,7 +135,7 @@ export function VideoGallery({ base, locked = [], emptyState }: Props) {
               <VideoCard key={v.id} video={v} onOpen={setOpenId} onToggleFavorite={toggleFavorite} />
             ))}
           </div>
-          <div ref={sentinel} aria-hidden className="h-px" />
+          <div ref={sentinel} aria-hidden data-testid="gallery-sentinel" className="h-px" />
           <div className="flex justify-center py-8">
             {isFetchingNextPage ? (
               <span className="flex items-center gap-2 text-sm text-muted-foreground">
