@@ -5,6 +5,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { useConfirm } from '@/components/ui/confirm';
 import { Textarea } from '@/components/ui/input';
+import { Linkify } from '@/components/ui/Linkify';
 import { Skeleton } from '@/components/ui/misc';
 import { addComment, deleteComment, listComments, updateComment } from '@/services/comments';
 import { friendlyError } from '@/services/errors';
@@ -97,7 +98,9 @@ export function CommentsPanel({ videoId, onChanged }: { videoId: string; onChang
               </div>
             ) : (
               <>
-                <p className="whitespace-pre-wrap break-words text-sm">{c.content}</p>
+                <p className="whitespace-pre-wrap break-words text-sm">
+                  <Linkify text={c.content} />
+                </p>
                 <div className="mt-1.5 flex items-center justify-between">
                   <span className="text-[11px] text-muted-foreground">
                     {formatDateTime(c.created_at)}
