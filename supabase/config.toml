@@ -1,0 +1,6 @@
+# Configuração mínima para a CLI do Supabase (deploy da Edge Function).
+# O projeto Supabase é compartilhado: tudo deste app usa o prefixo "biblioteca_".
+project_id = "biblioteca_insta"
+
+[functions.biblioteca_instagram_oembed]
+verify_jwt = true
