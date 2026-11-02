@@ -21,7 +21,7 @@ function Stat({ icon: Icon, label, value, to, accent }: { icon: LucideIcon; labe
             <Icon className="h-3.5 w-3.5" />
           </span>
         </div>
-        <div className="mt-1 text-lg font-semibold tracking-tight sm:mt-3 sm:text-2xl">{value === undefined ? <Skeleton className="h-6 w-8 sm:h-7 sm:w-14" /> : formatNumber(value)}</div>
+        <div className="mt-1 flex justify-center text-lg font-semibold tracking-tight sm:mt-3 sm:text-2xl">{value === undefined ? <Skeleton className="h-6 w-8 sm:h-7 sm:w-14" /> : formatNumber(value)}</div>
       </Card>
     </Link>
   );
