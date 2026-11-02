@@ -92,9 +92,25 @@ export function AppLayout() {
             <Logo className="hidden sm:flex" />
           </NavLink>
         </div>
-        <button type="button" onClick={() => editor.openCreate('quick')} className="rounded-md p-2 hover:bg-zinc-100" aria-label="Adicionar vídeo" title="Adicionar vídeo">
-          <Plus className="h-5 w-5" />
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Celular: "Cadastro completo" ao lado do "+", que fica mais grosso e colorido */}
+          <button
+            type="button"
+            onClick={() => editor.openCreate('full')}
+            className="rounded-full border px-3 py-1.5 text-xs font-medium text-zinc-700 hover:bg-zinc-50 sm:hidden"
+          >
+            Cadastro completo
+          </button>
+          <button
+            type="button"
+            onClick={() => editor.openCreate('quick')}
+            className="brand-gradient flex h-9 w-9 items-center justify-center rounded-full text-white shadow-sm hover:opacity-95 sm:h-auto sm:w-auto sm:rounded-md sm:bg-none sm:p-2 sm:text-zinc-900 sm:shadow-none sm:hover:bg-zinc-100"
+            aria-label="Adicionar vídeo"
+            title="Adicionar vídeo"
+          >
+            <Plus className="h-5 w-5 stroke-[3] sm:stroke-2" />
+          </button>
+        </div>
       </header>
 
       <DialogPrimitive.Root open={open} onOpenChange={setOpen}>

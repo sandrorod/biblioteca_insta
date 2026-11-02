@@ -16,7 +16,8 @@ export function AllVideosPage() {
         title="Todos os vídeos"
         actions={
           <>
-            <Button variant="outline" onClick={() => editor.openCreate('full')}>
+            {/* No celular o "Cadastro completo" fica na barra superior, ao lado do "+" */}
+            <Button variant="outline" className="hidden sm:inline-flex" onClick={() => editor.openCreate('full')}>
               Cadastro completo
             </Button>
             <Button variant="brand" className="hidden sm:inline-flex" onClick={() => editor.openCreate('quick')}>
