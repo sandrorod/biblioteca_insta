@@ -19,6 +19,13 @@ export interface Video {
   comments_count: number;
   created_at: string;
   updated_at: string;
+  /** Dados trazidos do Instagram (legenda original, autor, números e data real da publicação) */
+  instagram_caption: string | null;
+  instagram_author_name: string | null;
+  instagram_like_count: number | null;
+  instagram_comment_count: number | null;
+  instagram_taken_at: string | null;
+  instagram_fetched_at: string | null;
   category: TaxonomyRef | null;
   tags: TaxonomyRef[];
   /** Valor da ordenação atual (usado como cursor da próxima página) */

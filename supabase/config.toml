@@ -4,3 +4,6 @@ project_id = "biblioteca_insta"
 
 [functions.biblioteca_instagram_oembed]
 verify_jwt = true
+
+[functions.biblioteca_instagram_info]
+verify_jwt = true

@@ -9,6 +9,7 @@ import { Field } from '@/components/ui/label';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useRefreshLibrary } from '@/hooks/useTaxonomy';
 import { friendlyError } from '@/services/errors';
+import { refreshInstagramInfo } from '@/services/instagram';
 import { createVideo, findDuplicate, updateVideo } from '@/services/videos';
 import type { Video, VideoInput } from '@/types';
 import { cn } from '@/utils/cn';
@@ -116,7 +117,8 @@ function QuickAdd({ onDone, onFull }: { onDone: () => void; onFull: () => void }
         notes: null,
       }, tagIds);
       refresh();
-      toast.success('Vídeo salvo. Complete os dados quando quiser.', {
+      fetchInstagramInBackground(id, refresh);
+      toast.success('Vídeo salvo. Buscando legenda e dados no Instagram…', {
         action: { label: 'Abrir', onClick: () => navigate(`/videos?video=${id}`) },
       });
       setUrl('');
@@ -169,6 +171,13 @@ function QuickAdd({ onDone, onFull }: { onDone: () => void; onFull: () => void }
   );
 }
 
+/** Depois de cadastrar: busca legenda, autor, data e capa no Instagram sem travar a tela. */
+function fetchInstagramInBackground(id: string, refresh: () => void) {
+  refreshInstagramInfo(id)
+    .then(refresh)
+    .catch((err: Error) => toast.info(`Dados do Instagram não foram buscados: ${err.message}`));
+}
+
 const emptyInput: VideoInput = {
   title: '',
   instagram_url: '',
@@ -211,7 +220,7 @@ function VideoForm({ video, onDone }: { video?: Video; onDone: () => void }) {
     try {
       const data = { ...form, profile_name: form.profile_name || profileFromUrl(form.instagram_url) };
       if (video) await updateVideo(video.id, data, tagIds);
-      else await createVideo(data, tagIds);
+      else fetchInstagramInBackground(await createVideo(data, tagIds), refresh);
       refresh();
       toast.success(video ? 'Alterações salvas.' : 'Vídeo cadastrado.');
       onDone();

@@ -113,6 +113,13 @@ select pg_temp.ok(public.biblioteca_count_videos('{"search": "campanhas"}') = 1,
 -- Coleções
 insert into public.biblioteca_collections (id, name) values ('40000000-0000-4000-8000-000000000001', 'Inspirações');
 insert into public.biblioteca_collection_videos (collection_id, video_id) values ('40000000-0000-4000-8000-000000000001', '30000000-0000-4000-8000-000000000001');
+
+-- Dados do Instagram (legenda e autor) entram na pesquisa
+update public.biblioteca_videos set instagram_caption = 'Abertura de xadrez com ChatGPT', instagram_author_name = 'Leo Messi', instagram_like_count = 10
+ where id = '30000000-0000-4000-8000-000000000001';
+select pg_temp.ok(public.biblioteca_count_videos('{"search": "xadrez chatgpt"}') = 1, 'busca pela legenda do Instagram');
+select pg_temp.ok(public.biblioteca_count_videos('{"search": "leo messi"}') = 1, 'busca pelo autor no Instagram');
+select pg_temp.ok((select instagram_like_count from public.biblioteca_list_videos('{"search": "xadrez"}', 'recent', null, 1)) = 10, 'listagem devolve dados do Instagram');
 select pg_temp.ok(public.biblioteca_count_videos('{"collection_id": "40000000-0000-4000-8000-000000000001"}') = 1, 'filtro por coleção');
 select pg_temp.ok((select video_count from public.biblioteca_collections_stats) = 1, 'contagem da coleção');
 

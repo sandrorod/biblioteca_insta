@@ -13,6 +13,7 @@ Cada usuário tem a sua biblioteca, protegida por RLS no banco. O app foi feito 
 - **Filtros combináveis**: categoria, sem categoria, uma ou várias etiquetas (todas), sem etiquetas, favoritos, perfil, com ou sem comentários, data de cadastro e data de publicação. Ficam na URL, então os links podem ser compartilhados.
 - **Ordenação**: mais recentes, mais antigos, A–Z, Z–A, última atualização.
 - **Modal**: player oficial do Instagram ou capa; dados completos; navegação anterior/próximo (também pelas setas ←/→) respeitando os filtros; comentários; coleções.
+- **Dados do Instagram**: ao cadastrar, a legenda original, o autor, a data, as curtidas e os comentários são buscados automaticamente (RapidAPI). No vídeo, os 3 pontinhos têm **Baixar vídeo** e **Atualizar dados do Instagram**.
 - **Cadastro rápido**: só o link. **Cadastro completo**: todos os campos, com etiquetas criadas na hora.
   - Duplicidade verificada enquanto o link é digitado, e garantida também no banco (o mesmo vídeo via `/p/` e via `/reel/` conta como duplicado).
 - **Capa**: upload (reduzido para WebP), URL de imagem ou busca automática pela API oficial oEmbed da Meta (opcional, veja abaixo). Sem capa, é usada uma imagem padrão.
@@ -74,6 +75,19 @@ Nunca use a chave `service_role` no frontend. O `.env` está no `.gitignore`.
      npx supabase secrets set META_OEMBED_TOKEN=... --remote=<ref-do-projeto>
      ```
    - Sem o token, o botão "Automática" avisa que não está configurado e o cadastro segue com upload ou URL de imagem.
+
+### Dados e download do Instagram (RapidAPI)
+
+A legenda original, o autor, a data real da publicação, as curtidas, os comentários, a capa e o download do vídeo vêm da API **Instagram Looter** do RapidAPI, pela Edge Function `biblioteca_instagram_info`:
+
+1. Assine a API em https://rapidapi.com/irrors-apis/api/instagram-looter2 (o plano Basic é gratuito, com 150 consultas por mês).
+2. Cadastre a chave do RapidAPI como segredo do Supabase com o nome **`BIBLIOTECA_RAPIDAPI_KEY`**: Edge Functions → Secrets, ou `npx supabase secrets set BIBLIOTECA_RAPIDAPI_KEY=... --remote=<ref>`. A chave nunca vai para o navegador.
+3. Publique a função:
+   ```bash
+   npx supabase functions deploy biblioteca_instagram_info --remote=<ref> --use-api
+   ```
+
+Cada cadastro, cada "Atualizar dados do Instagram" e cada "Baixar vídeo" gasta uma consulta. Os dados ficam nas colunas `instagram_*`, separados do título, da descrição e das observações escritas pelo usuário. Título, perfil, data de publicação e capa só são preenchidos quando estão vazios.
 
 ## Rodar localmente
 

@@ -5,6 +5,8 @@ import {
   Archive,
   ArchiveRestore,
   CalendarDays,
+  Download,
+  Eye,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
@@ -15,9 +17,11 @@ import {
   Image as ImageIcon,
   Library,
   Loader2,
+  MessageCircle,
   MoreHorizontal,
   Pencil,
   PlayCircle,
+  RefreshCw,
   Trash2,
   User,
   X,
@@ -27,13 +31,15 @@ import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Linkify } from '@/components/ui/Linkify';
 import { ColorBadge } from '@/components/ui/misc';
 import { useRefreshLibrary } from '@/hooks/useTaxonomy';
 import { useVideoActions } from '@/hooks/useVideoActions';
+import { downloadVideo, refreshInstagramInfo } from '@/services/instagram';
 import { getVideo } from '@/services/videos';
 import type { Video } from '@/types';
 import { cn } from '@/utils/cn';
-import { displayTitle, formatDate, formatDateTime } from '@/utils/format';
+import { displayTitle, formatDate, formatDateTime, formatNumber } from '@/utils/format';
 import { instagramEmbedUrl } from '@/utils/instagram';
 import { CollectionPicker } from './CollectionPicker';
 import { CommentsPanel } from './CommentsPanel';
@@ -172,6 +178,35 @@ function ModalBody({ video, onClose, prev, canNext, onPrev, onNext }: { video: V
     window.focus();
   };
 
+  const [busy, setBusy] = useState<'download' | 'refresh' | null>(null);
+
+  const download = async () => {
+    setBusy('download');
+    const t = toast.loading('Baixando o vídeo…');
+    try {
+      await downloadVideo(video.id);
+      toast.success('Download concluído.', { id: t });
+    } catch (err) {
+      toast.error((err as Error).message, { id: t });
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const updateFromInstagram = async () => {
+    setBusy('refresh');
+    const t = toast.loading('Buscando dados no Instagram…');
+    try {
+      await refreshInstagramInfo(video.id);
+      refresh();
+      toast.success('Dados do Instagram atualizados.', { id: t });
+    } catch (err) {
+      toast.error((err as Error).message, { id: t });
+    } finally {
+      setBusy(null);
+    }
+  };
+
   const copyLink = async () => {
     try {
       await navigator.clipboard.writeText(video.instagram_url);
@@ -286,6 +321,12 @@ function ModalBody({ video, onClose, prev, canNext, onPrev, onNext }: { video: V
                 <DropdownMenuItem onSelect={copyLink}>
                   <Copy /> Copiar link
                 </DropdownMenuItem>
+                <DropdownMenuItem onSelect={download} disabled={busy !== null}>
+                  <Download /> Baixar vídeo
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={updateFromInstagram} disabled={busy !== null}>
+                  <RefreshCw /> Atualizar dados do Instagram
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onSelect={() => toggleArchived(video).then(onClose)}>
                   {video.is_archived ? <ArchiveRestore /> : <Archive />} {video.is_archived ? 'Restaurar' : 'Arquivar'}
@@ -347,6 +388,8 @@ function ModalBody({ video, onClose, prev, canNext, onPrev, onNext }: { video: V
             </div>
           </dl>
 
+          <InstagramInfo video={video} loading={busy === 'refresh'} onRefresh={updateFromInstagram} />
+
           {video.notes && (
             <section>
               <h3 className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Observações internas</h3>
@@ -366,5 +409,75 @@ function ModalBody({ video, onClose, prev, canNext, onPrev, onNext }: { video: V
         </div>
       </div>
     </>
+  );
+}
+
+/** Legenda original e dados da publicação trazidos do Instagram. */
+function InstagramInfo({ video, loading, onRefresh }: { video: Video; loading: boolean; onRefresh: () => void }) {
+  const [expanded, setExpanded] = useState(false);
+  if (!video.instagram_fetched_at) {
+    return (
+      <section className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
+        Legenda e dados do Instagram ainda não foram buscados.{' '}
+        <button type="button" onClick={onRefresh} disabled={loading} className="font-medium text-zinc-900 underline underline-offset-2 disabled:opacity-50">
+          {loading ? 'Buscando…' : 'Buscar agora'}
+        </button>
+      </section>
+    );
+  }
+  const caption = video.instagram_caption ?? '';
+  const long = caption.length > 280;
+  return (
+    <section>
+      <h3 className="mb-1.5 flex items-center justify-between text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        Do Instagram
+        <button type="button" onClick={onRefresh} disabled={loading} className="flex items-center gap-1 normal-case tracking-normal hover:text-zinc-900 disabled:opacity-50" title="Atualizar dados do Instagram">
+          <RefreshCw className={cn('h-3 w-3', loading && 'animate-spin')} /> Atualizar
+        </button>
+      </h3>
+      <div className="space-y-2.5 rounded-lg border bg-zinc-50/60 p-3 text-sm">
+        <dl className="grid grid-cols-2 gap-2 text-xs">
+          {video.instagram_author_name && (
+            <div className="col-span-2">
+              <dt className="text-muted-foreground">Autor</dt>
+              <dd className="font-medium">
+                {video.instagram_author_name}
+                {video.profile_name && <span className="font-normal text-muted-foreground"> · @{video.profile_name}</span>}
+              </dd>
+            </div>
+          )}
+          <div>
+            <dt className="text-muted-foreground">Publicado em</dt>
+            <dd className="font-medium">{formatDateTime(video.instagram_taken_at)}</dd>
+          </div>
+          <div>
+            <dt className="flex items-center gap-1 text-muted-foreground">
+              <Eye className="h-3 w-3" /> Engajamento
+            </dt>
+            <dd className="font-medium">
+              {video.instagram_like_count !== null && <span className="mr-2"><Heart className="mr-0.5 inline h-3 w-3" />{formatNumber(video.instagram_like_count)}</span>}
+              {video.instagram_comment_count !== null && <span><MessageCircle className="mr-0.5 inline h-3 w-3" />{formatNumber(video.instagram_comment_count)}</span>}
+              {video.instagram_like_count === null && video.instagram_comment_count === null && '—'}
+            </dd>
+          </div>
+        </dl>
+        {caption ? (
+          <div>
+            <p className="mb-0.5 text-xs text-muted-foreground">Legenda</p>
+            <p className={cn('whitespace-pre-wrap break-words text-zinc-800', !expanded && long && 'line-clamp-6')}>
+              <Linkify text={caption} />
+            </p>
+            {long && (
+              <button type="button" onClick={() => setExpanded((v) => !v)} className="mt-1 text-xs font-medium text-zinc-600 hover:text-zinc-900">
+                {expanded ? 'Mostrar menos' : 'Mostrar tudo'}
+              </button>
+            )}
+          </div>
+        ) : (
+          <p className="text-xs text-muted-foreground">Publicação sem legenda.</p>
+        )}
+        <p className="text-[11px] text-muted-foreground">Atualizado em {formatDateTime(video.instagram_fetched_at)}</p>
+      </div>
+    </section>
   );
 }
