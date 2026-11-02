@@ -71,7 +71,7 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
   );
 }
 
-/** Estrutura das páginas internas: menu lateral fixo no desktop, gaveta no celular. */
+/** Estrutura das páginas internas: barra superior com menu hambúrguer (gaveta lateral) em todas as telas. */
 export function AppLayout() {
   const [open, setOpen] = useState(false);
   const editor = useVideoEditor();
@@ -81,25 +81,26 @@ export function AppLayout() {
 
   return (
     <div className="min-h-dvh">
-      <aside className="fixed inset-y-0 left-0 z-30 hidden w-60 border-r bg-white md:block">
-        <SidebarContent />
-      </aside>
-
-      {/* Barra superior no celular */}
-      <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b bg-white/95 px-3 backdrop-blur md:hidden">
-        <button type="button" onClick={() => setOpen(true)} className="rounded-md p-2 hover:bg-zinc-100" aria-label="Abrir menu">
-          <Menu className="h-5 w-5" />
-        </button>
-        <Logo compact />
-        <button type="button" onClick={() => editor.openCreate('quick')} className="rounded-md p-2 hover:bg-zinc-100" aria-label="Adicionar vídeo">
+      {/* Barra superior com menu hambúrguer (em todas as telas) */}
+      <header className="sticky top-0 z-30 flex h-14 items-center justify-between border-b bg-white/95 px-3 backdrop-blur md:px-6">
+        <div className="flex items-center gap-2">
+          <button type="button" onClick={() => setOpen(true)} className="rounded-md p-2 hover:bg-zinc-100" aria-label="Abrir menu">
+            <Menu className="h-5 w-5" />
+          </button>
+          <NavLink to="/" aria-label="Ir para o Dashboard">
+            <Logo compact className="sm:hidden" />
+            <Logo className="hidden sm:flex" />
+          </NavLink>
+        </div>
+        <button type="button" onClick={() => editor.openCreate('quick')} className="rounded-md p-2 hover:bg-zinc-100" aria-label="Adicionar vídeo" title="Adicionar vídeo">
           <Plus className="h-5 w-5" />
         </button>
       </header>
 
       <DialogPrimitive.Root open={open} onOpenChange={setOpen}>
         <DialogPrimitive.Portal>
-          <DialogPrimitive.Overlay className="fixed inset-0 z-40 bg-zinc-950/50 data-[state=open]:animate-in data-[state=open]:fade-in-0 md:hidden" />
-          <DialogPrimitive.Content className="fixed inset-y-0 left-0 z-40 w-72 max-w-[85vw] bg-white shadow-xl data-[state=open]:animate-in data-[state=open]:slide-in-from-left md:hidden" aria-describedby={undefined}>
+          <DialogPrimitive.Overlay className="fixed inset-0 z-40 bg-zinc-950/50 data-[state=open]:animate-in data-[state=open]:fade-in-0" />
+          <DialogPrimitive.Content className="fixed inset-y-0 left-0 z-40 w-72 max-w-[85vw] bg-white shadow-xl data-[state=open]:animate-in data-[state=open]:slide-in-from-left" aria-describedby={undefined}>
             <DialogPrimitive.Title className="sr-only">Menu</DialogPrimitive.Title>
             <DialogPrimitive.Close className="absolute right-3 top-5 rounded-md p-1.5 text-zinc-500 hover:bg-zinc-100" aria-label="Fechar menu">
               <X className="h-4 w-4" />
@@ -109,7 +110,7 @@ export function AppLayout() {
         </DialogPrimitive.Portal>
       </DialogPrimitive.Root>
 
-      <main className="md:pl-60">
+      <main>
         <div className="mx-auto max-w-6xl px-4 py-5 md:px-8 md:py-8">
           <Outlet />
         </div>

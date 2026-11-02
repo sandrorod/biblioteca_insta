@@ -74,7 +74,7 @@ export function VideoGallery({ base, locked = [], emptyState }: Props) {
 
   return (
     <div>
-      <div className="sticky top-14 z-20 -mx-4 mb-3 space-y-2 border-b border-transparent bg-zinc-50/90 px-4 pb-3 pt-1 backdrop-blur supports-[backdrop-filter]:bg-zinc-50/75 md:top-0 md:-mx-8 md:px-8">
+      <div className="sticky top-14 z-20 -mx-4 mb-3 space-y-2 border-b border-transparent bg-zinc-50/90 px-4 pb-3 pt-1 backdrop-blur supports-[backdrop-filter]:bg-zinc-50/75 md:-mx-8 md:px-8">
         <div className="flex gap-2">
           <SearchBar value={filters.search ?? ''} onChange={(search) => setFilters({ ...filters, search: search || undefined })} onApplyFilter={(patch) => setFilters({ ...filters, ...patch })} />
           <FiltersPanel filters={filters} onChange={setFilters} locked={locked} />
