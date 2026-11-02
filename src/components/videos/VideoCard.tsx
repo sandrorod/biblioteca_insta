@@ -1,9 +1,10 @@
 import { Clapperboard, Heart, MessageSquare } from 'lucide-react';
-import { memo, useCallback, useState } from 'react';
+import { memo, useState } from 'react';
 import type { Video } from '@/types';
 import { cn } from '@/utils/cn';
 import { displayTitle } from '@/utils/format';
-import { EmbedThumb } from './EmbedThumb';
+import { parseInstagramPost } from '@/utils/instagram';
+import { InstagramFrame } from './InstagramFrame';
 
 export const PLACEHOLDER = '/placeholder.svg';
 
@@ -16,8 +17,8 @@ interface Props {
 /** Miniatura 4:5 no estilo do Instagram: ícone de vídeo, favorito e detalhes ao passar o mouse. */
 export const VideoCard = memo(function VideoCard({ video, onOpen, onToggleFavorite }: Props) {
   const [broken, setBroken] = useState(false);
-  const [embedFailed, setEmbedFailed] = useState(false);
-  const onEmbedUnavailable = useCallback(() => setEmbedFailed(true), []);
+  // Sem capa salva e com link de publicação: a capa é o próprio player do Instagram
+  const embedFailed = !parseInstagramPost(video.instagram_url);
   const hasImage = !!video.thumbnail_url && !broken;
   const src = hasImage ? video.thumbnail_url! : PLACEHOLDER;
 
@@ -25,7 +26,7 @@ export const VideoCard = memo(function VideoCard({ video, onOpen, onToggleFavori
     <div className="group relative aspect-[4/5] overflow-hidden bg-zinc-100 sm:rounded-sm">
       <button type="button" onClick={() => onOpen(video.id)} className="absolute inset-0 h-full w-full focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring" aria-label={`Abrir ${displayTitle(video.title)}`}>
         {/* Sem capa salva: usa o player oficial do Instagram como capa */}
-        {!hasImage && !embedFailed && <EmbedThumb url={video.instagram_url} onUnavailable={onEmbedUnavailable} />}
+        {!hasImage && !embedFailed && <InstagramFrame url={video.instagram_url} fit="cover" lazy title="Capa do vídeo (Instagram)" />}
         <img
           src={src}
           alt=""

@@ -5,8 +5,10 @@ import {
   Archive,
   ArchiveRestore,
   CalendarDays,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
   Copy,
   ExternalLink,
   Heart,
@@ -20,7 +22,7 @@ import {
   User,
   X,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -35,6 +37,7 @@ import { displayTitle, formatDate, formatDateTime } from '@/utils/format';
 import { instagramEmbedUrl } from '@/utils/instagram';
 import { CollectionPicker } from './CollectionPicker';
 import { CommentsPanel } from './CommentsPanel';
+import { InstagramFrame } from './InstagramFrame';
 import { PLACEHOLDER } from './VideoCard';
 import { useVideoEditor } from './VideoEditor';
 
@@ -141,11 +144,33 @@ function ModalBody({ video, onClose, prev, canNext, onPrev, onNext }: { video: V
   const embed = instagramEmbedUrl(video.instagram_url);
   const [mode, setMode] = useState<'player' | 'cover'>(embed ? 'player' : 'cover');
   const [imgBroken, setImgBroken] = useState(false);
+  // Painel de informações: recolhe (desliza para baixo) quando o vídeo recebe o play
+  const [panelOpen, setPanelOpen] = useState(true);
+  const frameRef = useRef<HTMLIFrameElement | null>(null);
 
   useEffect(() => {
     setMode(embed ? 'player' : 'cover');
     setImgBroken(false);
+    setPanelOpen(true);
   }, [video.id, embed]);
+
+  // O player é de outro site: o clique nele (play) é percebido quando a página perde o foco para o iframe
+  useEffect(() => {
+    const onBlur = () =>
+      setTimeout(() => {
+        if (frameRef.current && document.activeElement === frameRef.current) setPanelOpen(false);
+      });
+    window.addEventListener('blur', onBlur);
+    return () => window.removeEventListener('blur', onBlur);
+  }, []);
+
+  const openPanel = () => {
+    if (panelOpen) return;
+    setPanelOpen(true);
+    // Devolve o foco à página para perceber o próximo play
+    if (document.activeElement instanceof HTMLIFrameElement) document.activeElement.blur();
+    window.focus();
+  };
 
   const copyLink = async () => {
     try {
@@ -158,43 +183,40 @@ function ModalBody({ video, onClose, prev, canNext, onPrev, onNext }: { video: V
 
   return (
     <>
-      {/* Mídia */}
-      <div className="relative flex shrink-0 flex-col bg-zinc-950 md:w-[min(52%,560px)] md:shrink">
-        <div className="flex items-center justify-between gap-2 px-3 py-2 md:hidden">
-          <button type="button" onClick={onClose} className="rounded-full p-1.5 text-white/90 hover:bg-white/10" aria-label="Fechar">
+      {/* Mídia: ocupa toda a área livre (encolhe quando o painel está aberto) */}
+      <div
+        className={cn(
+          'absolute inset-x-0 top-0 bg-black transition-[bottom,right] duration-300 ease-out md:bottom-0',
+          panelOpen ? 'bottom-[48%] md:right-[400px]' : 'bottom-11 md:right-0',
+        )}
+        onPointerDown={(e) => e.target === e.currentTarget && openPanel()}
+      >
+        {mode === 'player' && embed ? (
+          <InstagramFrame ref={frameRef} url={video.instagram_url} fit="contain" interactive title={`Publicação do Instagram: ${displayTitle(video.title)}`} />
+        ) : (
+          <img
+            src={!video.thumbnail_url || imgBroken ? PLACEHOLDER : video.thumbnail_url}
+            onError={() => setImgBroken(true)}
+            alt=""
+            className="absolute inset-0 h-full w-full object-contain"
+          />
+        )}
+        {/* Barra do celular: fechar e navegar */}
+        <div className="absolute inset-x-0 top-0 flex items-center justify-between bg-gradient-to-b from-black/60 to-transparent px-2 py-1.5 md:hidden">
+          <button type="button" onClick={onClose} className="rounded-full p-1.5 text-white hover:bg-white/10" aria-label="Fechar">
             <X className="h-5 w-5" />
           </button>
           <div className="flex gap-1">
-            <button type="button" disabled={!prev} onClick={onPrev} className="rounded-full p-1.5 text-white/90 hover:bg-white/10 disabled:opacity-30" aria-label="Vídeo anterior">
+            <button type="button" disabled={!prev} onClick={onPrev} className="rounded-full p-1.5 text-white hover:bg-white/10 disabled:opacity-30" aria-label="Vídeo anterior">
               <ChevronLeft className="h-5 w-5" />
             </button>
-            <button type="button" disabled={!canNext} onClick={onNext} className="rounded-full p-1.5 text-white/90 hover:bg-white/10 disabled:opacity-30" aria-label="Próximo vídeo">
+            <button type="button" disabled={!canNext} onClick={onNext} className="rounded-full p-1.5 text-white hover:bg-white/10 disabled:opacity-30" aria-label="Próximo vídeo">
               <ChevronRight className="h-5 w-5" />
             </button>
           </div>
         </div>
-        <div className="relative h-[52vh] md:h-full">
-          {mode === 'player' && embed ? (
-            <iframe
-              key={video.id}
-              src={embed}
-              title={`Publicação do Instagram: ${displayTitle(video.title)}`}
-              className="h-full w-full bg-white"
-              loading="lazy"
-              allow="encrypted-media; picture-in-picture; clipboard-write"
-              allowFullScreen
-            />
-          ) : (
-            <img
-              src={!video.thumbnail_url || imgBroken ? PLACEHOLDER : video.thumbnail_url}
-              onError={() => setImgBroken(true)}
-              alt=""
-              className="h-full w-full object-contain"
-            />
-          )}
-        </div>
         {embed && (
-          <div className="absolute bottom-3 left-1/2 flex -translate-x-1/2 rounded-full bg-black/60 p-0.5 text-xs text-white backdrop-blur">
+          <div className="absolute bottom-2 left-1/2 flex -translate-x-1/2 rounded-full bg-black/60 p-0.5 text-xs text-white backdrop-blur">
             <button type="button" onClick={() => setMode('player')} className={cn('flex items-center gap-1 rounded-full px-2.5 py-1', mode === 'player' && 'bg-white text-zinc-900')}>
               <PlayCircle className="h-3.5 w-3.5" /> Player
             </button>
@@ -205,8 +227,24 @@ function ModalBody({ video, onClose, prev, canNext, onPrev, onNext }: { video: V
         )}
       </div>
 
-      {/* Informações */}
-      <div className="flex min-h-0 flex-1 flex-col">
+      {/* Informações: recolhe para baixo durante o play; passar o mouse ou tocar na alça abre de novo */}
+      <div
+        onMouseEnter={openPanel}
+        className={cn(
+          'absolute inset-x-0 bottom-0 flex h-[48%] flex-col bg-white shadow-[0_-8px_24px_rgba(0,0,0,0.12)] transition-transform duration-300 ease-out md:inset-x-auto md:right-0 md:top-0 md:h-full md:w-[400px] md:border-l md:shadow-none',
+          !panelOpen && 'translate-y-[calc(100%-2.75rem)]',
+        )}
+      >
+        <button
+          type="button"
+          onClick={() => (panelOpen ? setPanelOpen(false) : openPanel())}
+          className="flex h-11 shrink-0 items-center justify-center gap-1.5 border-b text-xs font-medium text-zinc-500 hover:bg-zinc-50"
+          aria-expanded={panelOpen}
+          data-testid="panel-handle"
+        >
+          {panelOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronUp className="h-4 w-4" />}
+          {panelOpen ? 'Recolher informações' : `Informações · ${displayTitle(video.title)}`}
+        </button>
         <div className="flex items-center gap-2 border-b px-4 py-3">
           {video.profile_name ? (
             <Link to={`/videos?profile=${encodeURIComponent(video.profile_name)}`} onClick={onClose} className="flex min-w-0 items-center gap-2 text-sm font-semibold hover:underline">
