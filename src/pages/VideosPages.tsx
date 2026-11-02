@@ -19,7 +19,7 @@ export function AllVideosPage() {
             <Button variant="outline" onClick={() => editor.openCreate('full')}>
               Cadastro completo
             </Button>
-            <Button variant="brand" onClick={() => editor.openCreate('quick')}>
+            <Button variant="brand" className="hidden sm:inline-flex" onClick={() => editor.openCreate('quick')}>
               <Plus /> Adicionar vídeo
             </Button>
           </>

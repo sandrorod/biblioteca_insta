@@ -12,15 +12,16 @@ import { formatNumber } from '@/utils/format';
 
 function Stat({ icon: Icon, label, value, to, accent }: { icon: LucideIcon; label: string; value?: number; to: string; accent: string }) {
   return (
-    <Link to={to} className="group">
-      <Card className="p-4 transition hover:-translate-y-0.5 hover:shadow-md">
-        <div className="flex items-center justify-between">
-          <span className="text-xs font-medium text-muted-foreground">{label}</span>
-          <span className="flex h-7 w-7 items-center justify-center rounded-md" style={{ backgroundColor: `${accent}1a`, color: accent }}>
+    <Link to={to} className="group min-w-0">
+      {/* No celular os 5 cards cabem numa linha: mais estreitos, sem o ícone */}
+      <Card className="px-1.5 py-2.5 transition hover:-translate-y-0.5 hover:shadow-md sm:p-4">
+        <div className="flex items-center justify-between gap-1">
+          <span className="truncate text-[9px] font-medium tracking-tight text-muted-foreground sm:text-xs sm:tracking-normal">{label}</span>
+          <span className="hidden h-7 w-7 shrink-0 items-center justify-center rounded-md sm:flex" style={{ backgroundColor: `${accent}1a`, color: accent }}>
             <Icon className="h-3.5 w-3.5" />
           </span>
         </div>
-        <div className="mt-3 text-2xl font-semibold tracking-tight">{value === undefined ? <Skeleton className="h-7 w-14" /> : formatNumber(value)}</div>
+        <div className="mt-1 text-lg font-semibold tracking-tight sm:mt-3 sm:text-2xl">{value === undefined ? <Skeleton className="h-6 w-8 sm:h-7 sm:w-14" /> : formatNumber(value)}</div>
       </Card>
     </Link>
   );
@@ -42,13 +43,14 @@ export function DashboardPage() {
         title="Dashboard"
         description={stats ? `${formatNumber(stats.added_last_7_days)} vídeo(s) adicionado(s) nos últimos 7 dias` : 'Visão geral da sua biblioteca'}
         actions={
-          <Button variant="brand" onClick={() => editor.openCreate('quick')}>
+          // No celular o "+" da barra superior já adiciona vídeos
+          <Button variant="brand" className="hidden sm:inline-flex" onClick={() => editor.openCreate('quick')}>
             <Plus /> Adicionar vídeo
           </Button>
         }
       />
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      <div className="grid grid-cols-5 gap-1.5 sm:gap-3">
         <Stat icon={Video} label="Vídeos" value={stats?.videos} to="/videos" accent="#ec4899" />
         <Stat icon={Folder} label="Categorias" value={stats?.categories} to="/categorias" accent="#6366f1" />
         <Stat icon={Hash} label="Etiquetas" value={stats?.tags} to="/etiquetas" accent="#0ea5e9" />
