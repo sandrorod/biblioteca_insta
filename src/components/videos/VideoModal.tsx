@@ -416,6 +416,7 @@ function ModalBody({ video, onClose, prev, canNext, onPrev, onNext }: { video: V
 /** Legenda original e dados da publicação trazidos do Instagram. */
 function InstagramInfo({ video, loading, onRefresh }: { video: Video; loading: boolean; onRefresh: () => void }) {
   const [expanded, setExpanded] = useState(false);
+  const [showOriginal, setShowOriginal] = useState(false);
   if (!video.instagram_fetched_at) {
     return (
       <section className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
@@ -426,7 +427,9 @@ function InstagramInfo({ video, loading, onRefresh }: { video: Video; loading: b
       </section>
     );
   }
-  const caption = video.instagram_caption ?? '';
+  const hasOriginal = !!video.instagram_caption_original;
+  const caption = (showOriginal && hasOriginal ? video.instagram_caption_original : video.instagram_caption) ?? '';
+  const langName = languageName(video.instagram_caption_lang);
   const long = caption.length > 280;
   return (
     <section>
@@ -464,7 +467,14 @@ function InstagramInfo({ video, loading, onRefresh }: { video: Video; loading: b
         </dl>
         {caption ? (
           <div>
-            <p className="mb-0.5 text-xs text-muted-foreground">Legenda</p>
+            <p className="mb-0.5 flex items-center justify-between gap-2 text-xs text-muted-foreground">
+              <span>{hasOriginal ? (showOriginal ? `Legenda original (${langName})` : `Legenda traduzida do ${langName}`) : 'Legenda'}</span>
+              {hasOriginal && (
+                <button type="button" onClick={() => setShowOriginal((v) => !v)} className="font-medium text-zinc-600 hover:text-zinc-900">
+                  {showOriginal ? 'Ver tradução' : 'Ver original'}
+                </button>
+              )}
+            </p>
             <p className={cn('whitespace-pre-wrap break-words text-zinc-800', !expanded && long && 'line-clamp-6')}>
               <Linkify text={caption} />
             </p>
@@ -481,4 +491,13 @@ function InstagramInfo({ video, loading, onRefresh }: { video: Video; loading: b
       </div>
     </section>
   );
+}
+
+const LANGUAGES: Record<string, string> = {
+  en: 'inglês', es: 'espanhol', fr: 'francês', it: 'italiano', de: 'alemão', ja: 'japonês', ko: 'coreano',
+  zh: 'chinês', ru: 'russo', ar: 'árabe', hi: 'hindi', nl: 'holandês', tr: 'turco', pl: 'polonês', id: 'indonésio',
+};
+
+function languageName(code: string | null): string {
+  return (code && LANGUAGES[code]) || (code ? code.toUpperCase() : 'outro idioma');
 }

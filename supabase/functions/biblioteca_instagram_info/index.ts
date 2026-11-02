@@ -1,6 +1,6 @@
 // Edge Function: dados e download de um vídeo do Instagram pela API "Instagram Looter" (RapidAPI).
 //
-// POST { action: "refresh", video_id }  → busca legenda, autor, data, curtidas e comentários e grava no vídeo;
+// POST { action: "refresh", video_id }  → busca legenda (salva traduzida para o português), autor, data, curtidas e comentários;
 //                                          preenche título, perfil, data de publicação e capa quando estão vazios.
 // POST { action: "download", video_id } → devolve o arquivo .mp4 do vídeo.
 //
@@ -8,6 +8,7 @@
 // Usa o login de quem chama: o RLS garante que só vídeos da própria biblioteca são lidos/alterados.
 import { createClient } from 'npm:@supabase/supabase-js@2.47.10';
 import { isInstagramCdn, parseLooterPost, titleFromCaption, type InstagramInfo, type LooterPost } from '../_shared/looter.ts';
+import { translateToPortuguese } from '../_shared/translate.ts';
 
 const HOST = 'instagram-looter2.p.rapidapi.com';
 const BUCKET = 'biblioteca_thumbnails';
@@ -76,15 +77,20 @@ Deno.serve(async (req) => {
   }
 
   // ─── Atualizar dados: campos do Instagram sempre; os do usuário só quando estão vazios ───
+  // Legenda salva em português; a original fica guardada quando houve tradução
+  const tr = info.caption ? await translateToPortuguese(info.caption, (u) => fetch(u, { signal: AbortSignal.timeout(15_000) })) : null;
+  const caption = tr?.text ?? null;
   const patch: Record<string, unknown> = {
-    instagram_caption: info.caption,
+    instagram_caption: caption,
+    instagram_caption_original: tr?.translated ? info.caption : null,
+    instagram_caption_lang: tr?.lang ?? null,
     instagram_author_name: info.authorName,
     instagram_like_count: info.likeCount,
     instagram_comment_count: info.commentCount,
     instagram_taken_at: info.takenAt,
     instagram_fetched_at: new Date().toISOString(),
   };
-  if (!video.title?.trim() && info.caption) patch.title = titleFromCaption(info.caption);
+  if (!video.title?.trim() && caption) patch.title = titleFromCaption(caption);
   if (!video.profile_name && info.username) patch.profile_name = info.username;
   if (!video.original_publish_date && info.publishDate) patch.original_publish_date = info.publishDate;
 

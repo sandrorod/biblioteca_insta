@@ -87,6 +87,8 @@ A legenda original, o autor, a data real da publicação, as curtidas, os coment
    npx supabase functions deploy biblioteca_instagram_info --remote=<ref> --use-api
    ```
 
+A legenda é salva **traduzida para o português** pela API gratuita do MyMemory, que não exige chave. A original fica guardada em `instagram_caption_original` (o modal tem "Ver original"), e #hashtags, @menções e links não são traduzidos. A cota gratuita é de cerca de 5.000 caracteres por dia; quando ela acaba, a legenda é salva no idioma original.
+
 Cada cadastro, cada "Atualizar dados do Instagram" e cada "Baixar vídeo" gasta uma consulta. Os dados ficam nas colunas `instagram_*`, separados do título, da descrição e das observações escritas pelo usuário. Título, perfil, data de publicação e capa só são preenchidos quando estão vazios.
 
 ## Rodar localmente

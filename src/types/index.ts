@@ -20,7 +20,10 @@ export interface Video {
   created_at: string;
   updated_at: string;
   /** Dados trazidos do Instagram (legenda original, autor, números e data real da publicação) */
+  /** Legenda salva em português (traduzida quando a original era de outro idioma) */
   instagram_caption: string | null;
+  instagram_caption_original: string | null;
+  instagram_caption_lang: string | null;
   instagram_author_name: string | null;
   instagram_like_count: number | null;
   instagram_comment_count: number | null;

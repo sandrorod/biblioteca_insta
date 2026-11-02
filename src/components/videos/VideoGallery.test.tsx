@@ -23,6 +23,8 @@ const all: Video[] = Array.from({ length: 60 }, (_, i) => ({
   created_at: new Date(2024, 0, 60 - i).toISOString(),
   updated_at: new Date(2024, 0, 60 - i).toISOString(),
   instagram_caption: null,
+  instagram_caption_original: null,
+  instagram_caption_lang: null,
   instagram_author_name: null,
   instagram_like_count: null,
   instagram_comment_count: null,

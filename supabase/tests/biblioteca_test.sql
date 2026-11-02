@@ -120,6 +120,11 @@ update public.biblioteca_videos set instagram_caption = 'Abertura de xadrez com 
 select pg_temp.ok(public.biblioteca_count_videos('{"search": "xadrez chatgpt"}') = 1, 'busca pela legenda do Instagram');
 select pg_temp.ok(public.biblioteca_count_videos('{"search": "leo messi"}') = 1, 'busca pelo autor no Instagram');
 select pg_temp.ok((select instagram_like_count from public.biblioteca_list_videos('{"search": "xadrez"}', 'recent', null, 1)) = 10, 'listagem devolve dados do Instagram');
+update public.biblioteca_videos set instagram_caption = 'Abertura de xadrez traduzida', instagram_caption_original = 'Apertura de ajedrez original', instagram_caption_lang = 'es'
+ where id = '30000000-0000-4000-8000-000000000001';
+select pg_temp.ok(public.biblioteca_count_videos('{"search": "ajedrez"}') = 1, 'busca pela legenda original (não traduzida)');
+select pg_temp.ok(public.biblioteca_count_videos('{"search": "traduzida"}') = 1, 'busca pela legenda traduzida');
+select pg_temp.ok((select instagram_caption_lang from public.biblioteca_list_videos('{"search": "ajedrez"}', 'recent', null, 1)) = 'es', 'listagem devolve o idioma da legenda');
 select pg_temp.ok(public.biblioteca_count_videos('{"collection_id": "40000000-0000-4000-8000-000000000001"}') = 1, 'filtro por coleção');
 select pg_temp.ok((select video_count from public.biblioteca_collections_stats) = 1, 'contagem da coleção');
 
