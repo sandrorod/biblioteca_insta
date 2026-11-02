@@ -9,6 +9,9 @@ interface AuthState {
   loading: boolean;
   /** true quando o usuário chegou pelo link de "esqueci a senha" */
   recovering: boolean;
+  /** Cadastro em andamento: a tela de cadastro não redireciona sozinha (ela leva ao login) */
+  signingUp: boolean;
+  setSigningUp: (v: boolean) => void;
   signOut: () => Promise<void>;
 }
 
@@ -18,6 +21,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [recovering, setRecovering] = useState(false);
+  const [signingUp, setSigningUp] = useState(false);
   const queryClient = useQueryClient();
   const userId = session?.user.id;
 
@@ -45,11 +49,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user: session?.user ?? null,
       loading,
       recovering,
+      signingUp,
+      setSigningUp,
       signOut: async () => {
         await supabase.auth.signOut();
       },
     }),
-    [session, loading, recovering],
+    [session, loading, recovering, signingUp],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

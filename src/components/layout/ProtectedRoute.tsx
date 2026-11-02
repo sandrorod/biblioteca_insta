@@ -20,8 +20,8 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
 
 /** Login/cadastro: quem já está logado vai direto para o painel. */
 export function GuestRoute({ children }: { children: ReactNode }) {
-  const { user, loading, recovering } = useAuth();
+  const { user, loading, recovering, signingUp } = useAuth();
   if (loading) return null;
-  if (user && !recovering) return <Navigate to="/" replace />;
+  if (user && !recovering && !signingUp) return <Navigate to="/" replace />;
   return <>{children}</>;
 }

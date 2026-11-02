@@ -6,6 +6,7 @@ import { Logo } from '@/components/layout/Logo';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Field } from '@/components/ui/label';
+import { useAuth } from '@/contexts/AuthContext';
 import { supabase, supabaseConfigured } from '@/integrations/supabase/client';
 
 function AuthShell({ title, subtitle, children, footer }: { title: string; subtitle: string; children: ReactNode; footer?: ReactNode }) {
@@ -41,8 +42,9 @@ const authMessage = (msg: string) => {
 export function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const from = (location.state as { from?: string } | null)?.from ?? '/';
-  const [email, setEmail] = useState('');
+  const state = location.state as { from?: string; email?: string } | null;
+  const from = state?.from ?? '/';
+  const [email, setEmail] = useState(state?.email ?? '');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -70,10 +72,10 @@ export function LoginPage() {
     >
       <form onSubmit={submit} className="space-y-4">
         <Field label="E-mail" htmlFor="email">
-          <Input id="email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus />
+          <Input id="email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoFocus={!state?.email} />
         </Field>
         <Field label="Senha" htmlFor="password">
-          <Input id="password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+          <Input id="password" type="password" autoFocus={!!state?.email} autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
         </Field>
         <div className="flex justify-end">
           <Link to="/esqueci-senha" className="text-xs font-medium text-zinc-500 hover:text-zinc-900">
@@ -90,6 +92,7 @@ export function LoginPage() {
 
 export function SignupPage() {
   const navigate = useNavigate();
+  const { setSigningUp } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
@@ -100,11 +103,34 @@ export function SignupPage() {
     e.preventDefault();
     if (password !== confirm) return toast.error('As senhas não conferem.');
     setLoading(true);
-    const { data, error } = await supabase.auth.signUp({ email: email.trim(), password, options: { emailRedirectTo: `${window.location.origin}/` } });
+    setSigningUp(true);
+    const address = email.trim();
+    const { data, error } = await supabase.auth.signUp({ email: address, password, options: { emailRedirectTo: `${window.location.origin}/` } });
+    if (error && /already registered/i.test(error.message)) {
+      setLoading(false);
+      setSigningUp(false);
+      toast.info('Este e-mail já tem uma conta. Entre com a senha dela.', {
+        description: 'Se não lembrar a senha, use “Esqueci minha senha”.',
+      });
+      return navigate('/login', { replace: true, state: { email: address } });
+    }
+    if (error) {
+      setLoading(false);
+      setSigningUp(false);
+      return toast.error(authMessage(error.message));
+    }
+    // Precisa confirmar o e-mail antes de entrar
+    if (!data.session) {
+      setLoading(false);
+      setSigningUp(false);
+      return setSent(true);
+    }
+    // Cadastro concluído: a pessoa entra pela tela de login
+    await supabase.auth.signOut();
     setLoading(false);
-    if (error) return toast.error(authMessage(error.message));
-    if (data.session) navigate('/', { replace: true });
-    else setSent(true);
+    toast.success('Cadastro realizado! Faça login para acessar sua biblioteca.');
+    navigate('/login', { replace: true, state: { email: address } });
+    setSigningUp(false);
   };
 
   if (sent) {
