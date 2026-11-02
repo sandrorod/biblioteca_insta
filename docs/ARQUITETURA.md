@@ -37,13 +37,14 @@ Todos os objetos têm o prefixo `biblioteca_`, porque o projeto Supabase é comp
 
 ### Pesquisa
 
-`search_text` é um texto normalizado (minúsculas, sem acentos) com título, descrição, perfil, observações, nome da categoria, nomes das etiquetas e conteúdo dos comentários.
+`search_text` é um texto normalizado (minúsculas, sem acentos) com título, descrição, link do Instagram, perfil, data de publicação, observações, nome da categoria, nomes das etiquetas, conteúdo dos comentários e nomes das coleções.
 
 Os gatilhos o mantêm atualizado quando muda:
 - o próprio vídeo;
 - as etiquetas do vídeo;
 - um comentário;
-- o nome de uma categoria ou etiqueta.
+- a entrada ou saída de uma coleção;
+- o nome de uma categoria, etiqueta ou coleção.
 
 A pesquisa quebra o termo em palavras: todas precisam aparecer, em qualquer ordem, via `LIKE ALL`. Um índice GIN de trigramas (`pg_trgm`) acelera a busca, e os caracteres `%` e `_` são escapados.
 

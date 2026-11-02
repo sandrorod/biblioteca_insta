@@ -9,7 +9,7 @@ Cada usuário tem a sua biblioteca, protegida por RLS no banco. O app foi feito 
 - **Dashboard**: totais (vídeos, categorias, etiquetas, favoritos, coleções), vídeos recentes, categorias e etiquetas mais usadas.
 - **Galeria**: grade 4:5 (3 colunas no desktop, com opção de 4 ou 5), ícone de vídeo, favorito com um toque, detalhes ao passar o mouse.
 - **Infinite scroll**: 24 por vez, Intersection Observer, cursor (`sort_key` + `id`), sem duplicados, uma requisição por vez, indicador de carregamento, erro com "Tentar novamente".
-- **Pesquisa** em toda a biblioteca, sem diferenciar acentos: título, descrição, perfil, observações, comentários, categoria e etiquetas. Tem debounce, sugestões, contagem de resultados e atalho `/`.
+- **Pesquisa** em toda a biblioteca e em todos os campos do vídeo, sem diferenciar acentos: título, descrição, link do Instagram, perfil, data de publicação (DD/MM/AAAA ou AAAA-MM-DD), observações, comentários, categoria, etiquetas e coleções. Tem debounce, sugestões, contagem de resultados e atalho `/`.
 - **Filtros combináveis**: categoria, sem categoria, uma ou várias etiquetas (todas), sem etiquetas, favoritos, perfil, com ou sem comentários, data de cadastro e data de publicação. Ficam na URL, então os links podem ser compartilhados.
 - **Ordenação**: mais recentes, mais antigos, A–Z, Z–A, última atualização.
 - **Modal**: player oficial do Instagram ou capa; dados completos; navegação anterior/próximo (também pelas setas ←/→) respeitando os filtros; comentários; coleções.

@@ -71,7 +71,7 @@ export function SearchBar({ value, onChange, onApplyFilter }: Props) {
         onFocus={() => setFocused(true)}
         onBlur={() => setTimeout(() => setFocused(false), 150)}
         onKeyDown={(e) => e.key === 'Escape' && (text ? clear() : inputRef.current?.blur())}
-        placeholder="Pesquisar título, descrição, perfil, comentários, etiquetas…"
+        placeholder="Pesquisar em todos os campos: título, descrição, link, perfil, etiquetas, comentários…"
         className="h-10 pl-9 pr-9"
         aria-label="Pesquisar vídeos"
       />

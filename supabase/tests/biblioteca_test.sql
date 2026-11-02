@@ -116,6 +116,20 @@ insert into public.biblioteca_collection_videos (collection_id, video_id) values
 select pg_temp.ok(public.biblioteca_count_videos('{"collection_id": "40000000-0000-4000-8000-000000000001"}') = 1, 'filtro por coleção');
 select pg_temp.ok((select video_count from public.biblioteca_collections_stats) = 1, 'contagem da coleção');
 
+-- Pesquisa em todos os campos: link, data de publicação e coleção
+update public.biblioteca_videos set original_publish_date = '2024-03-15' where id = '30000000-0000-4000-8000-000000000001';
+select pg_temp.ok(public.biblioteca_count_videos('{"search": "ABC123xyz"}') = 1, 'busca pelo código do link');
+select pg_temp.ok(public.biblioteca_count_videos('{"search": "instagram.com/reel"}') = 1, 'busca pelo link');
+select pg_temp.ok(public.biblioteca_count_videos('{"search": "15/03/2024"}') = 1, 'busca pela data de publicação (DD/MM/AAAA)');
+select pg_temp.ok(public.biblioteca_count_videos('{"search": "2024-03-15"}') = 1, 'busca pela data de publicação (AAAA-MM-DD)');
+select pg_temp.ok(public.biblioteca_count_videos('{"search": "inspiracoes"}') = 1, 'busca pelo nome da coleção');
+update public.biblioteca_collections set name = 'Referências' where id = '40000000-0000-4000-8000-000000000001';
+select pg_temp.ok(public.biblioteca_count_videos('{"search": "referencias corte"}') = 1, 'coleção renomeada pesquisável');
+select pg_temp.ok(public.biblioteca_count_videos('{"search": "inspiracoes"}') = 0, 'nome antigo da coleção some da busca');
+delete from public.biblioteca_collection_videos where collection_id = '40000000-0000-4000-8000-000000000001';
+select pg_temp.ok(public.biblioteca_count_videos('{"search": "referencias"}') = 0, 'vídeo fora da coleção sai da busca por ela');
+insert into public.biblioteca_collection_videos (collection_id, video_id) values ('40000000-0000-4000-8000-000000000001', '30000000-0000-4000-8000-000000000001');
+
 select pg_temp.ok((public.biblioteca_dashboard()->>'videos')::int = 30, 'painel: vídeos');
 select pg_temp.ok((public.biblioteca_dashboard()->>'favorites')::int = 2, 'painel: favoritos');
 
