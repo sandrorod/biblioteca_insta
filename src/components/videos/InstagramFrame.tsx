@@ -11,6 +11,7 @@ const EMBED_H = 760;
 const HEADER = 54;
 const BOX_H = 500;
 const REEL_W = (BOX_H * 9) / 16;
+const EDGE = 2;
 
 interface Props {
   url: string;
@@ -48,21 +49,26 @@ export const InstagramFrame = forwardRef<HTMLIFrameElement, Props>(function Inst
 
   if (!post) return null;
   const src = `https://www.instagram.com/${post.kind}/${post.shortcode}/embed/`;
-  // Área útil da mídia dentro do player (sem cabeçalho e, em reels, sem as faixas pretas)
-  const mediaW = post.kind === 'reel' ? REEL_W : EMBED_W;
+  // Área útil da mídia dentro do player (sem cabeçalho e, em reels, sem as faixas pretas).
+  // Recorta EDGE px para dentro em cada borda: o arredondamento da escala não deixa vazar
+  // a linha branca do rodapé/cabeçalho do player.
+  const mediaW = (post.kind === 'reel' ? REEL_W : EMBED_W) - EDGE * 2;
+  const mediaH = BOX_H - EDGE * 2;
   const mediaX = (EMBED_W - mediaW) / 2;
+  const mediaY = HEADER + EDGE;
 
   // Janela recortada exatamente no tamanho da mídia mostrada; o player fica posicionado dentro dela
   let clip: CSSProperties = { inset: 0 };
   let frameStyle: CSSProperties = {};
   if (size && size.w > 0 && size.h > 0) {
-    const scale = fit === 'cover' ? Math.max(size.w / mediaW, size.h / BOX_H) : Math.min(size.w / mediaW, size.h / BOX_H);
-    const shownW = Math.min(mediaW * scale, size.w);
-    const shownH = Math.min(BOX_H * scale, size.h);
+    const scale = fit === 'cover' ? Math.max(size.w / mediaW, size.h / mediaH) : Math.min(size.w / mediaW, size.h / mediaH);
+    // Janela em pixels inteiros (sem meio pixel na borda)
+    const shownW = Math.floor(Math.min(mediaW * scale, size.w));
+    const shownH = Math.floor(Math.min(mediaH * scale, size.h));
     // Centro da mídia no centro da janela
     const tx = shownW / 2 - (mediaX + mediaW / 2) * scale;
-    const ty = shownH / 2 - (HEADER + BOX_H / 2) * scale;
-    clip = { left: (size.w - shownW) / 2, top: (size.h - shownH) / 2, width: shownW, height: shownH };
+    const ty = shownH / 2 - (mediaY + mediaH / 2) * scale;
+    clip = { left: Math.round((size.w - shownW) / 2), top: Math.round((size.h - shownH) / 2), width: shownW, height: shownH };
     frameStyle = { width: EMBED_W, height: EMBED_H, transform: `translate(${tx}px, ${ty}px) scale(${scale})` };
   }
 

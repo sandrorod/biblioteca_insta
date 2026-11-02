@@ -221,8 +221,9 @@ function ModalBody({ video, onClose, prev, canNext, onPrev, onNext }: { video: V
       {/* Mídia: ocupa toda a área livre (encolhe quando o painel está aberto) */}
       <div
         className={cn(
-          'absolute inset-x-0 top-0 bg-black transition-[bottom,right] duration-300 ease-out md:bottom-0',
-          panelOpen ? 'bottom-[48%] md:right-[400px]' : 'bottom-11 md:right-0',
+          'absolute inset-x-0 top-0 bg-black transition-[bottom,right] duration-300 ease-out',
+          // Recolhido: o vídeo termina acima da alça "Informações" (não fica por baixo dela)
+          panelOpen ? 'bottom-[48%] md:bottom-0 md:right-[400px]' : 'bottom-11 md:right-0',
         )}
         onPointerDown={(e) => e.target === e.currentTarget && openPanel()}
       >
