@@ -125,6 +125,25 @@ update public.biblioteca_videos set instagram_caption = 'Abertura de xadrez trad
 select pg_temp.ok(public.biblioteca_count_videos('{"search": "ajedrez"}') = 1, 'busca pela legenda original (não traduzida)');
 select pg_temp.ok(public.biblioteca_count_videos('{"search": "traduzida"}') = 1, 'busca pela legenda traduzida');
 select pg_temp.ok((select instagram_caption_lang from public.biblioteca_list_videos('{"search": "ajedrez"}', 'recent', null, 1)) = 'es', 'listagem devolve o idioma da legenda');
+
+-- #hashtags da descrição e da legenda viram etiquetas (reaproveita as existentes; só as novas no texto)
+select pg_temp.ok(public.biblioteca_hashtags('Veja #Edição, #edicao e #ChatGPT_Partner! #123 email@x.com') = array['Edição', 'ChatGPT_Partner'], 'extrai hashtags sem repetir grafias');
+insert into public.biblioteca_videos (id, instagram_url, description)
+values ('30000000-0000-4000-8000-0000000000c1', 'https://www.instagram.com/p/HASH1/', 'Ideia boa #Roteiro #transicao');
+select pg_temp.ok((select array_agg(t.name order by t.name) from public.biblioteca_video_tags vt join public.biblioteca_tags t on t.id = vt.tag_id
+                    where vt.video_id = '30000000-0000-4000-8000-0000000000c1') = array['Roteiro', 'transição'], 'hashtag vira etiqueta (e usa a existente "transição")');
+select pg_temp.ok((select count(*) from public.biblioteca_tags where public.biblioteca_norm(name) = 'transicao') = 1, 'não duplica etiqueta existente');
+-- Usuário remove a etiqueta; editar outra coisa (ou a descrição sem hashtag nova) não a traz de volta
+delete from public.biblioteca_video_tags where video_id = '30000000-0000-4000-8000-0000000000c1'
+   and tag_id = (select id from public.biblioteca_tags where name = 'Roteiro');
+update public.biblioteca_videos set description = 'Ideia boa #Roteiro #transicao (editada)' where id = '30000000-0000-4000-8000-0000000000c1';
+select pg_temp.ok(not exists (select 1 from public.biblioteca_video_tags vt join public.biblioteca_tags t on t.id = vt.tag_id
+                   where vt.video_id = '30000000-0000-4000-8000-0000000000c1' and t.name = 'Roteiro'), 'etiqueta removida não volta');
+update public.biblioteca_videos set instagram_caption = 'Legenda #Viral' where id = '30000000-0000-4000-8000-0000000000c1';
+select pg_temp.ok(exists (select 1 from public.biblioteca_video_tags vt join public.biblioteca_tags t on t.id = vt.tag_id
+                   where vt.video_id = '30000000-0000-4000-8000-0000000000c1' and t.name = 'Viral'), 'hashtag nova da legenda do Instagram vira etiqueta');
+select pg_temp.ok(public.biblioteca_count_videos('{"search": "viral"}') >= 1, 'etiqueta da hashtag entra na pesquisa');
+delete from public.biblioteca_videos where id = '30000000-0000-4000-8000-0000000000c1';
 select pg_temp.ok(public.biblioteca_count_videos('{"collection_id": "40000000-0000-4000-8000-000000000001"}') = 1, 'filtro por coleção');
 select pg_temp.ok((select video_count from public.biblioteca_collections_stats) = 1, 'contagem da coleção');
 

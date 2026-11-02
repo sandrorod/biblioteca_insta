@@ -274,7 +274,7 @@ function VideoForm({ video, onDone }: { video?: Video; onDone: () => void }) {
         <TagPicker value={tagIds} onChange={setTagIds} />
       </Field>
 
-      <Field label="Descrição" htmlFor="v-desc">
+      <Field label="Descrição" htmlFor="v-desc" hint="As #hashtags da descrição viram etiquetas automaticamente.">
         <Textarea id="v-desc" value={form.description ?? ''} onChange={(e) => set('description', text(e.target.value))} rows={3} maxLength={10000} />
       </Field>
 

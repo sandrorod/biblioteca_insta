@@ -61,14 +61,22 @@ export async function createVideo(input: VideoInput, tagIds: string[] = []): Pro
       .select('id')
       .single(),
   ) as { id: string };
-  if (tagIds.length) await setVideoTags(row.id, tagIds);
+  // Só acrescenta: as #hashtags da descrição já viraram etiquetas no banco (gatilho) e não podem ser apagadas aqui
+  if (tagIds.length) {
+    unwrap(
+      await supabase
+        .from('biblioteca_video_tags')
+        .upsert(tagIds.map((tag_id) => ({ video_id: row.id, tag_id })), { onConflict: 'video_id,tag_id', ignoreDuplicates: true }),
+    );
+  }
   return row.id;
 }
 
 export async function updateVideo(id: string, input: Partial<VideoInput>, tagIds?: string[]): Promise<void> {
   const patch = input.instagram_url ? { ...input, instagram_url: normalizeInstagramUrl(input.instagram_url) } : input;
-  unwrap(await supabase.from('biblioteca_videos').update(patch).eq('id', id));
+  // Etiquetas escolhidas primeiro; depois o texto, para que #hashtags novas da descrição virem etiquetas
   if (tagIds) await setVideoTags(id, tagIds);
+  unwrap(await supabase.from('biblioteca_videos').update(patch).eq('id', id));
 }
 
 export async function setVideoTags(videoId: string, tagIds: string[]): Promise<void> {

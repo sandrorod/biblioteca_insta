@@ -18,7 +18,7 @@ Cada usuário tem a sua biblioteca, protegida por RLS no banco. O app foi feito 
   - Duplicidade verificada enquanto o link é digitado, e garantida também no banco (o mesmo vídeo via `/p/` e via `/reel/` conta como duplicado).
 - **Capa**: upload (reduzido para WebP), URL de imagem ou busca automática pela API oficial oEmbed da Meta (opcional, veja abaixo). Sem capa, é usada uma imagem padrão.
 - **Categorias**: cor, descrição, reordenação e contagem. Ao excluir, os vídeos podem ser transferidos para outra categoria.
-- **Etiquetas**: cor, pesquisa e contagem. **Coleções**: um vídeo pode estar em várias.
+- **Etiquetas**: cor, pesquisa e contagem. As **#hashtags** da descrição e da legenda do Instagram viram etiquetas automaticamente. A etiqueta existente é reaproveitada, e uma etiqueta removida não volta ao editar. **Coleções**: um vídeo pode estar em várias.
 - **Favoritos** e **Arquivados** com página própria. Exclusão definitiva sempre com confirmação.
 - **Autenticação**: login, cadastro, recuperação de senha, troca de senha, logout e páginas protegidas.
 
